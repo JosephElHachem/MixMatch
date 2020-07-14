@@ -85,6 +85,3 @@ if __name__ == '__main__':
         MixMatch_instance.training()
     else:
         print('Error in opts.model')
-
-
-
