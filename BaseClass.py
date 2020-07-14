@@ -1,11 +1,5 @@
-import os
-import time
 import pickle
-import torch
-import numpy as np
-import torch.optim as optim
 import matplotlib.pyplot as plt
-from torchvision import datasets, transforms
 from model import Model, Phi
 from utils import *
 from data import *
@@ -103,10 +97,21 @@ class BaseClass:
 
 
         plt.figure()
+        plt.title('unlabeled losses')
+        plt.xlabel('epochs')
+        plt.plot(self.u_training_losses, label='unlabeled')
+        if self.save_path is not None:
+            path = os.path.join(self.save_path, 'unlabeled_losses.png')
+        else:
+            path = 'unlabeled_losses.png'
+        plt.legend()
+        plt.savefig(path)
+
+        plt.figure()
         plt.title('losses')
+        plt.xlabel('epochs')
         if MixMatch:
             plt.plot(self.l_training_losses, label='labeled')
-            plt.plot(self.u_training_losses, label='unlabeled')
         else:
             plt.plot(self.training_losses, label='training')
         plt.plot(self.val_losses, label='val')
@@ -119,6 +124,7 @@ class BaseClass:
         plt.savefig(path)
 
         plt.figure()
+        plt.xlabel('epochs')
         plt.plot(self.val_accuracies, label='val')
         plt.plot(self.test_epochs, self.test_accuracies, label='test')
         plt.legend()
