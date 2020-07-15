@@ -16,7 +16,8 @@ class Classic(BaseClass):
                  lr=0.001,
                  checkpoint_save = 1,
                  checkpoint_test=5,
-                 training_data_ratio=0.8
+                 training_data_ratio=0.8,
+                 labeled_data_ratio=1,
                  ):
         '''
         :param batch_size: batch_size for training data
@@ -31,7 +32,7 @@ class Classic(BaseClass):
             checkpoint_save = checkpoint_save,
             checkpoint_test= checkpoint_test,
         )
-        self.data_loader(1, training_data_ratio)
+        self.data_loader(labeled_data_ratio, training_data_ratio)
 
     def data_loader(self, labeled_data_ratio, training_data_ratio):
         (
@@ -40,7 +41,9 @@ class Classic(BaseClass):
             self.test_loader,
             self.train_val,
         ) = data_loaders(self.batch_size,
-                         training_data_ratio=training_data_ratio)
+                         labeled_data_ratio =labeled_data_ratio,
+                         training_data_ratio=training_data_ratio,
+                         without_unlabeled=True)
         pass
 
     def training(self):

@@ -3,7 +3,7 @@ import torch
 from torchvision import datasets, transforms
 
 
-def data_loaders(batch_size_l, K=1, batch_size_u=None, labeled_data_ratio=1, training_data_ratio=0.8):
+def data_loaders(batch_size_l, K=1, batch_size_u=None, labeled_data_ratio=1, training_data_ratio=0.8, without_unlabeled=False):
     transform_train = transforms.Compose([
             transforms.RandomRotation(90),
             transforms.RandomHorizontalFlip(),
@@ -45,6 +45,8 @@ def data_loaders(batch_size_l, K=1, batch_size_u=None, labeled_data_ratio=1, tra
     train_val = [len(trainset), len(valset)]
 
     # print(f'training : total_data={train_val[0]} -- len={len(train_loader)} -- batch={batch_size_l}')
+    if without_unlabeled:
+        labeled_data_ratio = 1
     if labeled_data_ratio < 1:
         print(f'unlabeled: total_data={labeled_unlabeled[1]} -- len={len(unlabeled_loaders[0])} -- batch={batch_size_u}')
         to_return = (train_loader, unlabeled_loaders, val_loader, test_loader, train_val, batch_size_u)

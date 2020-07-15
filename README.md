@@ -8,9 +8,7 @@ new label being the interpolations of their one-hot-labels.
 MixMatch is a semi-supervised training method that combines classic strategies of
 semi-supervised training methods incorporating the MixUp training loop.
 
-As a reference model, we aslo train the models in a classic way, implemented inside the Classic class.
-
-**To train:**
+For a baseline, we train the models in a classically, implemented inside the Classic class.
 
 # PARAMETERS
 - n_epochs=20    		    -> number of epochs for training.
@@ -36,7 +34,12 @@ Cross entropy loss is used for labeled data, while MSE loss is used for classifi
 
 ### HYPERPARAMETERS CHOICE
 
-# REFERENCES
+### Experiments
+#### Experiment 1
+The goal of this experiment is to compare the performance (test_losses and test_accuracies)
+of the three models with little labeled data. We only choose to use 100 labeled images because
+our network is small and does not have a large number of parameters.
 
+# REFERENCES
 * MixMatch: A Holistic Approach to Semi-Supervised Learning; arXiv:1905.02249v2
 * MixUp: Beyond Empirical Risk Minimization; arXiv:1710.09412v2
