@@ -29,7 +29,7 @@ if __name__ == '__main__':
                         help='parameter for sharpening distribution on unlabeled predictions',
                         default=0.5)
     parser.add_argument('--ULoss_factor',
-                        help='factor for unlabeled loss in total loss. Labaled loss factor is 1.',
+                        help='factor for unlabeled loss in total loss. Labeled loss factor is 1.',
                         default=100)
     parser.add_argument('--alpha',
                         type=float,
@@ -47,7 +47,7 @@ if __name__ == '__main__':
                         help='Experiment number to run. Will neglect all other parameters',
                         default=None)
 
-    parser.add_argument('--model', help='choose one of: Classic, MatchUp or MixMatch ', type=str, required=True)
+    parser.add_argument('--model', help='choose one of: Classic, MatchUp or MixMatch ', type=str)
     opts = parser.parse_args()
 
     if opts.experiment is None:
@@ -90,7 +90,7 @@ if __name__ == '__main__':
         else:
             pass
 
-    elif opts.experiment == 1:
+    elif opts.experiment == '1':
         '''
         The goal of this experiment is to compare the performance (test_losses and test_accuracies)
         of the three models with little labeled data. We only choose to use 100 labeled images because
@@ -107,6 +107,7 @@ if __name__ == '__main__':
         labeled_data_ratio = 0.016668
         training_data_ratio = 0.25  # to have 250 labeled images and 750 validation images        
         '''
+        print('starting experiment 1')
         exec(open('experiments/experiment1.py').read())
 
     else:

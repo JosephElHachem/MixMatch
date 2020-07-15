@@ -36,7 +36,7 @@ if __name__ == '__main__':
     factor = [1, 2, 4]
     for name, factor in zip(names, factor):
         classic_model = Classic(
-            save_path=os.path.join('experiment', 'classic', name),
+            save_path=os.path.join('results1', 'classic', name),
             n_epochs=n_epochs,
             batch_size=batch_size,
             lr=lr,
@@ -49,7 +49,7 @@ if __name__ == '__main__':
         classic_model.training()
 
         mixup_model = MixUp(
-            save_path=os.path.join('experiment', 'mixup', name),
+            save_path=os.path.join('results1', 'mixup', name),
             n_epochs=n_epochs,
             batch_size=batch_size,
             lr=lr,
@@ -61,7 +61,7 @@ if __name__ == '__main__':
         mixup_model.training()
 
         mixmatch_model = MixMatch(
-            save_path=os.path.join('experiment', 'mixmatch', name),
+            save_path=os.path.join('results1', 'mixmatch', name),
             n_epochs=n_epochs,
             lr=lr,
             batch_size_l=batch_size,

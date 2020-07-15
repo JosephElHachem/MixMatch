@@ -17,5 +17,7 @@ def cross_entropy(pred, soft_targets, one_hot=True):
     return torch.mean(torch.sum(- soft_targets * logsoftmax(pred), axis=1))
 
 def make_path(path):
+    print(path)
+    print('current dir:', os.getcwd())
     if path is not None and not os.path.isdir(path):
-        os.mkdir(path)
+        os.makedirs(path)
