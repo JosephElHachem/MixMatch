@@ -6,24 +6,25 @@ from data import *
 from utils import *
 from BaseClass import BaseClass
 
-
-
 class MixMatch(BaseClass):
-    def __init__(self,
-        save_path=None,
-        n_epochs = 50,
-        lr=0.001,
-        batch_size_l=64,
-        batch_size_u=None,
-        K=2,
-        temperature=0.5,
-        ULoss_factor=100,
-        checkpoint_save = 1,
-        checkpoint_test=5,
-        alpha = 0.75,
-        labeled_data_ratio=0.1,
-        training_data_ratio=0.8
-        ):
+    def __init__(
+            self,
+            save_path=None,
+            n_classes = 10,
+            dataset='mnist',
+            n_epochs = 50,
+            lr=0.001,
+            batch_size_l=64,
+            batch_size_u=None,
+            K=2,
+            temperature=0.5,
+            ULoss_factor=100,
+            checkpoint_save = 1,
+            checkpoint_test=5,
+            alpha = 0.75,
+            labeled_data_ratio=0.1,
+            training_data_ratio=0.8
+    ):
         '''
         :param batch_size_l: batch_size for labeled data
         :param batch_size_u: batch_size for unlabeled data
@@ -37,6 +38,8 @@ class MixMatch(BaseClass):
         BaseClass.__init__(
             self,
             save_path=save_path,
+            n_classes = n_classes,
+            dataset=dataset,
             n_epochs=n_epochs,
             batch_size=batch_size_l,
             lr=lr,
@@ -49,7 +52,7 @@ class MixMatch(BaseClass):
         self.temperature = temperature
         self.ULoss_factor = ULoss_factor
         self.alpha = alpha
-        self.data_loader(labeled_data_ratio, training_data_ratio)
+        self.data_loader(labeled_data_ratio, training_data_ratio, dataset=dataset)
 
     def sharpen(self, predictions_Us):
         predictions_Us = predictions_Us**(1./self.temperature)
@@ -77,7 +80,7 @@ class MixMatch(BaseClass):
         return predictions_Us
 
 
-    def data_loader(self, labeled_data_ratio, training_data_ratio):
+    def data_loader(self, labeled_data_ratio, training_data_ratio, dataset='mnist'):
         (
             self.train_loader,
             self.unlabeled_loaders,
@@ -86,11 +89,11 @@ class MixMatch(BaseClass):
             self.train_val,
             self.batch_size_u
         ) = data_loaders(self.batch_size_l,
-                         self.K,
+                         dataset=dataset,
+                         K=self.K,
                          batch_size_u=self.batch_size_u,
                          labeled_data_ratio=labeled_data_ratio,
                          training_data_ratio=training_data_ratio)
-        pass
 
     def training(self):
         if self.on_cuda:
@@ -105,8 +108,8 @@ class MixMatch(BaseClass):
         print('begining training')
         for epoch in range(self.n_epochs):
             self.ULoss_factor = min(self.ULoss_factor+3, 400)
-            labeled_loss_epoch = 0 # avg cross entropy loss
-            unlabeled_loss_epoch = 0 # avg L2**2 loss
+            labeled_loss_epoch = 0  # avg cross entropy loss
+            unlabeled_loss_epoch = 0  # avg L2**2 loss
 
             iter_unlabeled_loaders = [iter(loader) for loader in self.unlabeled_loaders]
             for local_X, local_y in self.train_loader:
@@ -150,8 +153,9 @@ class MixMatch(BaseClass):
                 del loss_X, loss_U, prediction, batch_loss
                 if self.on_cuda:
                     torch.cuda.empty_cache()
-            if self.save_path is not None and (epoch+1)%self.checkpoint_save == 0:
-                torch.save(self.Net.state_dict(), f'MixMatch_{epoch+1}.pth')
+            if self.save_path is not None and (epoch+1) % self.checkpoint_save == 0:
+                model_location = os.path.join(self.save_path, f'MixMatch_{epoch+1}.pth')
+                torch.save(self.Net.state_dict(), model_location)
             labeled_loss_epoch /= len(self.train_loader)
             self.l_training_losses.append(float(labeled_loss_epoch))
             self.u_training_losses.append(float(self.ULoss_factor * unlabeled_loss_epoch))

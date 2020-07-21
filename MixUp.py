@@ -5,17 +5,20 @@ from utils import *
 from BaseClass import BaseClass
 
 class MixUp(BaseClass):
-    def __init__(self,
-        save_path=None,
-        n_epochs = 50,
-        batch_size=64,
-        lr=0.001,
-        checkpoint_save = 1,
-        checkpoint_test=5,
-        alpha = 0.8,
-        labeled_data_ratio=0.1,
-        training_data_ratio=0.8
-        ):
+    def __init__(
+            self,
+            save_path=None,
+            n_classes = 10,
+            dataset='mnist',
+            n_epochs = 50,
+            batch_size=64,
+            lr=0.001,
+            checkpoint_save = 1,
+            checkpoint_test=5,
+            alpha = 0.8,
+            labeled_data_ratio=1,
+            training_data_ratio=0.8
+    ):
         '''
         :param batch_size: batch_size for training data
         :param alpha: Beta distribution parameter, used for MatchUp training
@@ -24,6 +27,8 @@ class MixUp(BaseClass):
         BaseClass.__init__(
             self,
             save_path=save_path,
+            n_classes = n_classes,
+            dataset=dataset,
             n_epochs=n_epochs,
             batch_size=batch_size,
             lr=lr,
@@ -31,25 +36,23 @@ class MixUp(BaseClass):
             checkpoint_test=checkpoint_test,
         )
         self.alpha = alpha
-        self.data_loader(labeled_data_ratio, training_data_ratio)
+        self.data_loader(labeled_data_ratio, training_data_ratio, dataset=dataset)
 
-    def data_loader(self, labeled_data_ratio, training_data_ratio):
+    def data_loader(self, labeled_data_ratio, training_data_ratio, dataset='mnist'):
         (
             self.train_loader,
             self.val_loader,
             self.test_loader,
             self.train_val,
         ) = data_loaders(self.batch_size,
+                         dataset=dataset,
                          K=1,
                          labeled_data_ratio=labeled_data_ratio,
-                         training_data_ratio=training_data_ratio)
+                         training_data_ratio=training_data_ratio,
+                         without_unlabeled=True)
         pass
 
     def training(self):
-        # initial testing:
-        # testing
-        self.testing(0)
-
         t0 = time.time()
         if self.on_cuda:
             print('training on GPU')
@@ -87,10 +90,13 @@ class MixUp(BaseClass):
                   f'--- time: {current_time}')
 
             if self.save_path is not None and (epoch+1)%self.checkpoint_save == 0:
-                torch.save(self.Net.state_dict(), f'MinUp_{epoch+1}.pth')
+                model_location = os.path.join(self.save_path, f'MixUp_{epoch+1}.pth')
+                torch.save(self.Net.state_dict(), model_location)
 
             if (epoch+1)%self.checkpoint_test==0:
                 self.testing(epoch)
             torch.cuda.empty_cache()
+
+        self.testing(epoch)
         self.save_losses(MixUp=True)
         self.plot_results(MixUp=True)

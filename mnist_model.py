@@ -1,6 +1,7 @@
+# MNIST
 import torch.nn as nn
 
-class Phi(nn.Module):
+class mnist_phi(nn.Module):
     def __init__(self):
         super().__init__()
         self.conv1 = nn.Conv2d(1, 32, 3)
@@ -16,7 +17,7 @@ class Phi(nn.Module):
         x = x.view(-1, 6400)
         return x
 
-class Model(nn.Module):
+class mnist_model(nn.Module):
     def __init__(self, Phi):
         super().__init__()
         self.conv = Phi

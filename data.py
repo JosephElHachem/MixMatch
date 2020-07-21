@@ -3,7 +3,8 @@ import torch
 from torchvision import datasets, transforms
 
 
-def data_loaders(batch_size_l, K=1, batch_size_u=None, labeled_data_ratio=1, training_data_ratio=0.8, without_unlabeled=False):
+def data_loaders(batch_size_l, dataset='cifar', K=1, batch_size_u=None,
+                 labeled_data_ratio=1, training_data_ratio=0.8, without_unlabeled=False, unit_test=False):
     transform_train = transforms.Compose([
             transforms.RandomRotation(90),
             transforms.RandomHorizontalFlip(),
@@ -11,12 +12,22 @@ def data_loaders(batch_size_l, K=1, batch_size_u=None, labeled_data_ratio=1, tra
             transforms.ToTensor(),
         ])
     no_transform = transforms.ToTensor()
-    ## datasets
-    all_training_data = datasets.FashionMNIST('~/.pytorch/F_MNIST_data/',
-                                        download=True,
-                                        train=True,
-                                        transform=transform_train)
-    all_training_data, _ = torch.utils.data.random_split(all_training_data, [1000,59000])
+    # datasets
+    if dataset == 'mnist':
+        all_training_data = datasets.FashionMNIST('~/.pytorch/F_MNIST_data/',
+                                            download=True,
+                                            train=True,
+                                            transform=transform_train)
+    elif dataset == 'cifar':
+        all_training_data = datasets.CIFAR10('~/.pytorch/CIFAR10/',
+                                            download=True,
+                                            train=True,
+                                            transform=transform_train)
+    else:
+        raise ValueError('dataset wrong')
+
+    if unit_test:
+        all_training_data, _ = torch.utils.data.random_split(all_training_data, [500, len(all_training_data)-500])
 
     data_length = len(all_training_data)
     labeled_unlabeled = [int(data_length * labeled_data_ratio),
@@ -26,10 +37,20 @@ def data_loaders(batch_size_l, K=1, batch_size_u=None, labeled_data_ratio=1, tra
                   labeled_data_length - int(labeled_data_length * training_data_ratio)]
     labeled_set, unlabeled_set = torch.utils.data.random_split(all_training_data, labeled_unlabeled)
     trainset, valset = torch.utils.data.random_split(labeled_set, train_val)
-    testset = datasets.FashionMNIST('~/.pytorch/F_MNIST_data/',
-                                     download=True,
-                                     train=False,
-                                     transform=no_transform)
+
+    if dataset == 'mnist':
+        testset = datasets.FashionMNIST('~/.pytorch/F_MNIST_data/',
+                                         download=True,
+                                         train=False,
+                                         transform=no_transform)
+    elif dataset == 'cifar':
+        testset = datasets.CIFAR10('~/.pytorch/CIFAR10/',
+                                            download=True,
+                                            train=False,
+                                            transform=no_transform)
+    else:
+        raise ValueError('dataset wrong')
+
     # data loaders
     train_loader = torch.utils.data.DataLoader(trainset, batch_size=batch_size_l, shuffle=True, pin_memory=True)
     if batch_size_u is None:
@@ -44,12 +65,12 @@ def data_loaders(batch_size_l, K=1, batch_size_u=None, labeled_data_ratio=1, tra
 
     train_val = [len(trainset), len(valset)]
 
-    # print(f'training : total_data={train_val[0]} -- len={len(train_loader)} -- batch={batch_size_l}')
     if without_unlabeled:
         labeled_data_ratio = 1
     if labeled_data_ratio < 1:
-        print(f'unlabeled: total_data={labeled_unlabeled[1]} -- len={len(unlabeled_loaders[0])} -- batch={batch_size_u}')
+        print(f'train labeled: {train_val[0]} -- val: {train_val[1]} -- unlabeled: {labeled_unlabeled[1]}')
         to_return = (train_loader, unlabeled_loaders, val_loader, test_loader, train_val, batch_size_u)
     else:
+        print(f'train labeled: {train_val[0]} -- val: {train_val[1]}')
         to_return = (train_loader, val_loader, test_loader, train_val)
     return to_return

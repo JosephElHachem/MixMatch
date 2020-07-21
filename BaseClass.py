@@ -1,19 +1,23 @@
 import pickle
 import matplotlib.pyplot as plt
-from model import Model, Phi
+from mnist_model import mnist_model, mnist_phi
+from cifar_model import cifar_model, cifar_phi
 from utils import *
 from data import *
 
 
 class BaseClass:
-    def __init__(self,
-        save_path=None,
-        n_epochs = 50,
-        batch_size=64,
-        lr=0.001,
-        checkpoint_save = 1,
-        checkpoint_test=5,
-        ):
+    def __init__(
+            self,
+            dataset='mnist',
+            n_classes = 10,
+            save_path=None,
+            n_epochs = 50,
+            batch_size=64,
+            lr=0.001,
+            checkpoint_save = 1,
+            checkpoint_test=5,
+    ):
         self.save_path = save_path
         make_path(self.save_path)
         self.n_epochs = n_epochs
@@ -22,15 +26,22 @@ class BaseClass:
         self.checkpoint_save = checkpoint_save
         self.checkpoint_test = checkpoint_test
         self.on_cuda = torch.cuda.is_available()
-        self.n_classes = 10
-        self.init_model()
+        self.n_classes = n_classes
+        self.init_model(dataset)
         self.init_losses()
         self.softmax = torch.nn.functional.softmax
         self.MSELoss = torch.nn.MSELoss(reduction='sum')
 
-    def init_model(self):
-        Phi_instance = Phi()
-        self.Net = Model(Phi_instance)
+    def init_model(self, dataset):
+        if dataset=='mnist':
+            Phi_instance = mnist_phi()
+            self.Net = mnist_model(Phi_instance)
+        elif dataset == 'cifar':
+            Phi_instance = cifar_phi()
+            self.Net = cifar_model(Phi_instance)
+        else:
+            raise ValueError('dataset argument must be either mnist or cifar. Or make the appropriate changes'
+                             'to use another dataset.')
         if self.on_cuda:
           self.Net.to('cuda')
 
@@ -47,7 +58,7 @@ class BaseClass:
 
     def make_one_hot(self, local_y):
         one_hot_y = torch.zeros((len(local_y), self.n_classes), dtype=torch.float)
-        one_hot_y[torch.arange(len(local_y)), local_y] = 1.
+        one_hot_y[torch.arange(len(local_y)), local_y.long()] = 1.
         return one_hot_y
 
     def evaluate(self):
@@ -106,10 +117,12 @@ class BaseClass:
             path = 'unlabeled_losses.png'
         plt.legend()
         plt.savefig(path)
+        plt.close()
 
         plt.figure()
         plt.title('losses')
         plt.xlabel('epochs')
+        plt.ylabel('loss')
         if MixMatch:
             plt.plot(self.l_training_losses, label='labeled')
         else:
@@ -122,9 +135,11 @@ class BaseClass:
         else:
             path = 'losses.png'
         plt.savefig(path)
+        plt.close()
 
         plt.figure()
         plt.xlabel('epochs')
+        plt.ylabel('accuracy')
         plt.plot(self.val_accuracies, label='val')
         plt.plot(self.test_epochs, self.test_accuracies, label='test')
         plt.legend()
@@ -133,6 +148,7 @@ class BaseClass:
         else:
             path = 'accuracies.png'
         plt.savefig(path)
+        plt.close()
 
     def save_losses(self, Classic=False, MixUp=False, MixMatch=False):
         if not Classic and not MixUp and not MixMatch:
@@ -199,7 +215,7 @@ class BaseClass:
 
 
 
-    def data_loader(self, labeled_data_ratio, training_data_ratio):
+    def data_loader(self, labeled_data_ratio, training_data_ratio, dataset='mnist'):
         raise NotImplementedError
         pass
 
