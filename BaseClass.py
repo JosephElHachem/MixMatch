@@ -5,7 +5,6 @@ from cifar_model import cifar_model, cifar_phi
 from utils import *
 from data import *
 
-
 class BaseClass:
     def __init__(
             self,
@@ -95,7 +94,7 @@ class BaseClass:
             print(f'Test set loss: {test_loss} -- accuracy: {accuracy}%')
             self.test_accuracies.append(accuracy)
             self.test_epochs.append(epoch+1)
-            self.test_losses.append(test_loss)
+            self.test_losses.append(test_loss.item())
             del test_images, test_labels, prediction, test_loss
             if self.on_cuda:
                 torch.cuda.empty_cache()
